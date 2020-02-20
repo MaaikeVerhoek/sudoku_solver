@@ -1,35 +1,19 @@
 # Import PuLP modeler functions
 from pulp import *
 import src.datapost.print_solution as ps
+import src.model.initialize_model as mod
+import src.model.add_goal as go
 import src.model.add_constraints as cons
-
-# A list of strings from "1" to "9" is created
-Sequence = ["1", "2", "3", "4", "5", "6", "7", "8", "9"]
-
-# The Vals, Rows and Cols sequences all follow this form
-Vals = Sequence
-Rows = Sequence
-Cols = Sequence
-
-# The boxes list is created, with the row and column index of each square in each box
-Boxes =[]
-for i in range(3):
-    for j in range(3):
-        Boxes += [[(Rows[3*i+k],Cols[3*j+l]) for k in range(3) for l in range(3)]]
+import src.dataprep.setup_sudoku as ss
 
 
+Vals, Rows, Cols, Boxes = ss.init_sudoku()
 
-# The prob variable is created to contain the problem data
-prob = LpProblem("SudokuProblem",LpMinimize)
+prob, choices = mod.init_model(Vals=Vals, Rows=Rows, Cols=Cols)
 
-# The problem variables are created
-choices = LpVariable.dicts("Choice",(Vals,Rows,Cols),0,1,LpInteger)
-
-# The arbitrary objective function is added
-prob += 0, "Arbitrary Objective Function"
+prob = go.objective_function(prob=prob)
 
 prob = cons.add_general_constraints(Rows=Rows, Cols=Cols, Vals=Vals, Boxes=Boxes, choices=choices, prob=prob)
-
 
 prob = cons.add_starting_constraints(prob=prob, choices=choices)
 
